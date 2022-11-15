@@ -1,2 +1,2 @@
 # Web Geliştirme Örnek #3
-To Do List App
+Simple To Do List App
