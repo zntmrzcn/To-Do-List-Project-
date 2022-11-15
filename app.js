@@ -37,12 +37,12 @@ function addTodo(e){
 
     //todoInput boş mu değil mi kontrolünün sağlanması.
     if(newTodo === ""){
-        showAlert("danger","Lütfen Bir ToDo İsmi Giriniz!");
+        showAlert("danger","Please Enter To Do!");
     }
     else {
         addTodoToUI(newTodo);
         addTodoToStorage(newTodo);
-        showAlert("success","ToDo Başarıyla Eklendi.")
+        showAlert("success","To Do Added Successfully.")
     }
     e.preventDefault();//Submit olayından sonra form tekrar yönlenmesin diye kullanılır.
 }
@@ -54,7 +54,7 @@ function deleteTodo(e){
    if(e.target.className==="fa fa-remove"){
     e.target.parentElement.parentElement.remove();
     deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
-    showAlert("warning","ToDo Başarıyla Silindi.")
+    showAlert("warning","To Do Removed Successfully.")
    }
 }
 
