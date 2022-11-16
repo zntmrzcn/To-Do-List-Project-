@@ -16,6 +16,8 @@ function eventListeners(){
     form.addEventListener("submit",addTodo);
     document.addEventListener("DOMContentLoaded",loadAllTodosToUI);//sayfamız açılır açılmaz çalışacak event.
     secondCardBody.addEventListener("click",deleteTodo);
+    filter.addEventListener("keyup",filterTodos);
+    clearButton.addEventListener("click",clearAllTodos);
 }
 
 
@@ -59,6 +61,24 @@ function deleteTodo(e){
 }
 
 
+//TÜM TODOLARI SİLME İŞLEMİ 
+function clearAllTodos(){
+    
+    if(confirm("Do you want to remove all todoes?")){
+        //Tüm todoları arayüzden kaldıracağız.
+        const listItems = document.querySelectorAll(".list-group-item");
+        listItems.forEach(function(listItem){
+            listItem.remove();
+        })
+        //Tüm todoları storage dan silme
+        localStorage.clear();
+        showAlert("warning","All To Does Removed Successfully.");
+    }
+
+    
+    
+}
+
 
 //STORAGE'DAN TODO SİLME İŞLEMİ
 function deleteTodoFromStorage(deletetodo){
@@ -72,6 +92,30 @@ function deleteTodoFromStorage(deletetodo){
 
     localStorage.setItem("todos",JSON.stringify(todos));
 }
+
+
+
+
+//FILTER INPUTUN'DAN GELEN DEĞER İLE TO DO FİLTRELEME 
+function filterTodos(e){
+    const filterValue = e.target.value.toLowerCase();
+    const listItems = document.querySelectorAll(".list-group-item");
+
+    listItems.forEach(function(listItem){
+        const text = listItem.textContent.toLowerCase();
+
+        //filterValue'yu arıyor 
+        if(text.indexOf(filterValue)===-1){ //bulamadı
+
+            listItem.setAttribute("style","display: none !important");
+        }//buldu
+        else{
+            listItem.setAttribute("style","display: block ");
+        }
+    })
+}
+
+
 
 
 
@@ -99,18 +143,31 @@ function addTodoToUI(newTodo){
     //List item oluşturma
     const listItem = document.createElement("li");
     listItem.className= "list-group-item d-flex justify-content-between";
-    
-    //ListItem'ın içine child alarak TextNode eklenmesi
-    listItem.appendChild(document.createTextNode(newTodo));
 
-    //todoları silmek için link oluşturma
-    const link = document.createElement("a");
-    link.href="#";
-    link.className= "delete-item";
-    link.innerHTML="<i class = 'fa fa-remove'></i>";
+    //check box ve todo içeriğini içeren sol taraf
+    const leftSide = document.createElement("span");
 
-    //Oluşturduğumuz link elementimizi ListItem içerisine child olarak eklenmesi
-    listItem.appendChild(link);
+    //Yapılan todoları check etme için link oluşturma
+    const checkLink = document.createElement("a");
+    checkLink.href = "#";
+    checkLink.className = "check-item";
+    checkLink.innerHTML = "<i class='fa-regular fa-square-check'></i>"
+
+    //todoları silmek için link oluşturma 
+    const deleteLink = document.createElement("a");
+    deleteLink.href="#";
+    deleteLink.className= "delete-item";
+    deleteLink.innerHTML="<i class = 'fa fa-remove'></i>";
+
+
+    //checkbox'ı spanın içine gönderiyoruz.
+    leftSide.appendChild(checkLink);
+    //spanın içerisinde text node oluşturuyoruz.
+    leftSide.appendChild(document.createTextNode(newTodo));
+    //list item span'ı içine alıyor.
+    listItem.appendChild(leftSide);
+    //list item delete linkinin içine alıyor.
+    listItem.appendChild(deleteLink);
 
     //Bir bütün olarak oluşturduğumuz listItemımızı <ul> etiketi olan todoList içerisine child olarak ekliyoruz.
     todoList.appendChild(listItem);
