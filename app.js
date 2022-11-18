@@ -11,14 +11,16 @@ const clearButton = document.getElementById("clear-todos");
 eventListeners();
 
 
+
 //BU FONKSİYON TÜM EVENT LISTENERSLARIN ATAMASINI YAPACAK.
 function eventListeners(){
     form.addEventListener("submit",addTodo);
     document.addEventListener("DOMContentLoaded",loadAllTodosToUI);//sayfamız açılır açılmaz çalışacak event.
-    secondCardBody.addEventListener("click",deleteTodo);
+    secondCardBody.addEventListener("click",links);
     filter.addEventListener("keyup",filterTodos);
     clearButton.addEventListener("click",clearAllTodos);
 }
+
 
 
 
@@ -33,30 +35,49 @@ function loadAllTodosToUI(){
 
 
 
+
 //YENİ TODO EKLEME İŞLEMİ.
 function addTodo(e){
+    let todos = getTodosFromStorage();
+
     const newTodo = todoInput.value.trim();//trim girilen değerin başındaki ve sonundaki boşlukları silmeyi sağlar.
 
-    //todoInput boş mu değil mi kontrolünün sağlanması.
-    if(newTodo === ""){
-        showAlert("danger","Please Enter To Do!");
-    }
-    else {
+    //todoInput boş mu değil mi ve hali hazırda kayıtlı mı kontrolünün yapılması
+    if(newTodo !=="" && todos.includes(newTodo) == false){
         addTodoToUI(newTodo);
         addTodoToStorage(newTodo);
-        showAlert("success","To Do Added Successfully.")
+        showAlert("success","To Do Added Successfully");
+    }
+    //todoInput boş mu kontrolünün yapılması
+    else if(newTodo === ""){
+        showAlert("warning","Please Enter To Do");
+    }
+    //Aynı isimde todo varsa
+    else {
+        showAlert("warning","There is allready a To Do with the same name");
     }
     e.preventDefault();//Submit olayından sonra form tekrar yönlenmesin diye kullanılır.
 }
 
 
 
-//TODO SİLME İŞLEMİ 
-function deleteTodo(e){
+
+
+//TODO SİLME VE YAPILAN TODOLARIN ÜZERİNİ ÇİZME 
+function links(e){
    if(e.target.className==="fa fa-remove"){
     e.target.parentElement.parentElement.remove();
     deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
     showAlert("warning","To Do Removed Successfully.")
+   }
+
+   if(e.target.className==="checkItem"){
+        if(e.target.checked == true){
+            e.target.parentElement.parentElement.setAttribute("style","text-decoration: line-through; opacity:60%;");
+        }
+        else {
+            e.target.parentElement.parentElement.setAttribute("style","text-decoration: none");
+        }
    }
 }
 
@@ -106,7 +127,6 @@ function filterTodos(e){
 
         //filterValue'yu arıyor 
         if(text.indexOf(filterValue)===-1){ //bulamadı
-
             listItem.setAttribute("style","display: none !important");
         }//buldu
         else{
@@ -147,11 +167,11 @@ function addTodoToUI(newTodo){
     //check box ve todo içeriğini içeren sol taraf
     const leftSide = document.createElement("span");
 
-    //Yapılan todoları check etme için link oluşturma
-    const checkLink = document.createElement("a");
-    checkLink.href = "#";
-    checkLink.className = "check-item";
-    checkLink.innerHTML = "<i class='fa-regular fa-square-check'></i>"
+    //Yapılan todoları check etme için checkBox oluşturma
+    const checkLink = document.createElement("input");
+    checkLink.className = "checkItem";
+    checkLink.type = "checkbox";
+
 
     //todoları silmek için link oluşturma 
     const deleteLink = document.createElement("a");
@@ -199,8 +219,8 @@ function getTodosFromStorage(){
 //INPUT ELEMENTİNDEN ALINAN YENİ TODO DEĞERİNİN LOCAL STORAGE'A EKLENMESİ İŞLEMİ.
 function addTodoToStorage(newTodo){
     let todos = getTodosFromStorage();
-
+   
     todos.push(newTodo);
-    localStorage.setItem("todos",JSON.stringify(todos));
-
+        localStorage.setItem("todos",JSON.stringify(todos));
+      
 }
