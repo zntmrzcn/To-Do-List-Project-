@@ -124,13 +124,22 @@ function filterTodos(e){
 
     listItems.forEach(function(listItem){
         const text = listItem.textContent.toLowerCase();
+        let textNode = listItem.children[0];
+        let checkBox = listItem.children[0].children[0];
 
         //filterValue'yu arıyor 
+        
         if(text.indexOf(filterValue)===-1){ //bulamadı
             listItem.setAttribute("style","display: none !important");
-        }//buldu
-        else{
-            listItem.setAttribute("style","display: block ");
+            
+        }
+        else{//buldu       
+            //Eğer checked edili haldeyse filtreleme işleminden sonra da checked edili halde gelmesi için.   
+            if(checkBox.checked == true){
+                textNode.setAttribute("style", "text-decoration: line-through; opacity:60%; ");
+            }
+            listItem.setAttribute("style","display: block;");
+            
         }
     })
 }
