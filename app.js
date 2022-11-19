@@ -65,10 +65,20 @@ function addTodo(e){
 //_________________TODO SİLME VE YAPILAN TODOLARIN ÜZERİNİ ÇİZME 
 function links(e){
     let todos = getTodosFromStorage();
+
+
    if(e.target.className==="fa fa-remove"){
-    e.target.parentElement.parentElement.remove();
-    deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
-    showAlert("warning","To Do Removed Successfully.")
+        e.target.parentElement.parentElement.remove();
+        deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
+
+        let checkedTodo = e.target.parentElement.parentElement.children[0].children[0];
+        let checkedTodoIndex = todos.indexOf(checkedTodo.nextSibling.textContent);
+       
+        if(checkedTodo.checked == true){
+           deleteCheckedTodoFromStorage(checkedTodoIndex);
+        }
+
+        showAlert("warning","To Do Removed Successfully.")
    }
 
    if(e.target.className==="checkItem"){
@@ -208,7 +218,6 @@ function addTodoToUI(newTodo,newCheckedTodo){
         if (index == newCheckedTodo){
             checkLink.checked = true;
             leftSide.setAttribute("style", "text-decoration: line-through; opacity:60%; ");
-            console.log(leftSide);
         }    
         else if(index != newCheckedTodo){
         }
@@ -277,10 +286,7 @@ function addTodoToStorage(newTodo){
     let todos = getTodosFromStorage();
    
     todos.push(newTodo);
-        localStorage.setItem("todos",JSON.stringify(todos));
-
-    console.log(todos);
-      
+        localStorage.setItem("todos",JSON.stringify(todos));      
 }
 
 
