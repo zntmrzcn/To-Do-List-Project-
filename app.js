@@ -1,5 +1,5 @@
 
-//index.html dosyamızdaki tüm elementleri seçiyoruz.
+// index.html dosyamızdaki tüm elementleri seçiyoruz.
 const form = document.getElementById("todo-form");
 const todoInput = document.getElementById("todo");
 const todoList = document.querySelector(".list-group");
@@ -12,7 +12,8 @@ eventListeners();
 
 
 
-//BU FONKSİYON TÜM EVENT LISTENERSLARIN ATAMASINI YAPACAK.
+
+// BU FONKSİYON TÜM EVENT LISTENERSLARIN ATAMASINI YAPACAK.
 function eventListeners(){
     form.addEventListener("submit",addTodo);
     document.addEventListener("DOMContentLoaded",loadAllTodosToUI);//sayfamız açılır açılmaz çalışacak event.
@@ -24,18 +25,21 @@ function eventListeners(){
 
 
 
-//___________________________SAYFAMIZ AÇILIR AÇILMAZ STORAGE'DAKİ TODOLARI ÇEKİP ARAYÜZDE GÖSTERECEK FONKSİYON.
+// SAYFAMIZ AÇILIR AÇILMAZ STORAGE'DAKİ TODOLARI ve TODOLARIN CHECKED DURUMLARINI ÇEKİP ARAYÜZDE GÖSTERECEK FONKSİYON.
 function loadAllTodosToUI(){
    let todos =  getTodosFromStorage();
+   let checkedTodos = getCheckedTodosFromStorage();
 
     todos.forEach(function(Todo,i){
-        addTodoToUI(Todo,i);
+        addTodoToUI(Todo,checkedTodos[i]);
     });
   
 }
 
 
-//_____________________________________YENİ TODO EKLEME İŞLEMİ.
+
+
+// YENİ TODO VE DEFAULT CHECKED ÖZELLİĞİNİ EKLEME İŞLEMİ.
 function addTodo(e){
     let todos = getTodosFromStorage();
 
@@ -45,6 +49,10 @@ function addTodo(e){
     if(newTodo !=="" && todos.includes(newTodo) == false){
         addTodoToUI(newTodo);
         addTodoToStorage(newTodo);
+        
+        //default checked property
+        addTodosCheckedValueToStorage("unChecked");
+
         showAlert("success","To Do Added Successfully");
     }
     //todoInput boş mu kontrolünün yapılması
@@ -61,23 +69,13 @@ function addTodo(e){
 
 
 
-
-//_________________TODO SİLME VE YAPILAN TODOLARIN ÜZERİNİ ÇİZME 
+// TODO SİLME VE YAPILAN TODOLARIN ÜZERİNİ ÇİZME 
 function links(e){
     let todos = getTodosFromStorage();
-
 
    if(e.target.className==="fa fa-remove"){
         e.target.parentElement.parentElement.remove();
         deleteTodoFromStorage(e.target.parentElement.parentElement.textContent);
-
-        let checkedTodo = e.target.parentElement.parentElement.children[0].children[0];
-        let checkedTodoIndex = todos.indexOf(checkedTodo.nextSibling.textContent);
-       
-        if(checkedTodo.checked == true){
-           deleteCheckedTodoFromStorage(checkedTodoIndex);
-        }
-
         showAlert("warning","To Do Removed Successfully.")
    }
 
@@ -85,21 +83,22 @@ function links(e){
         //check edilen todo içeriğinin localdeki index numarasını bulup yine locale farklı bir key ile yüklüyoruz
         let checkedTodoIndex = todos.indexOf(e.target.nextSibling.textContent);
        
-
         //CheckBox check olduğunda.
         if(e.target.checked === true){
             e.target.parentElement.setAttribute("style","text-decoration: line-through; opacity:60%;");
-            addCheckedTodoToStorage(checkedTodoIndex);
+            updateCheckedTodosValue("Checked",checkedTodoIndex);
         }
-        else if (e.target.checked === false){
+        else{
             e.target.parentElement.setAttribute("style"," ");
-            deleteCheckedTodoFromStorage(checkedTodoIndex);
+            updateCheckedTodosValue("unChecked",checkedTodoIndex);
         }
    }
 }
 
 
-//________________________TÜM TODOLARI SİLME İŞLEMİ 
+
+
+// TÜM TODOLARI SİLME İŞLEMİ 
 function clearAllTodos(){
     
     if(confirm("Do you want to remove all todoes?")){
@@ -112,40 +111,31 @@ function clearAllTodos(){
         localStorage.clear();
         showAlert("warning","All To Does Removed Successfully.");
     }
-
-    
-    
 }
 
 
-//__________________________________________STORAGE'DAN TODO SİLME İŞLEMİ
+
+
+// STORAGE'DAN TODO VE TODOLARIN CHECKED DEĞERLERİNİ SİLME İŞLEMİ
 function deleteTodoFromStorage(deletetodo){
     let todos = getTodosFromStorage();
+    let checkedTodos = getCheckedTodosFromStorage();
 
     todos.forEach(function(todo,index){
         if(todo === deletetodo){
             todos.splice(index,1);// arrayden değeri silme.
+            checkedTodos.splice(index,1); //
         }
     });
 
     localStorage.setItem("todos",JSON.stringify(todos));
-}
-
-//_____________________________________________TSORAGE'DAN INDEX SİLME İŞLEMİ
-function deleteCheckedTodoFromStorage(deleteCheckedTodo){
-    let checkedTodos = getCheckedTodosFromStorage();
-
-    checkedTodos.forEach(function(checkedTodo,index){
-        if(checkedTodo == deleteCheckedTodo){
-            checkedTodos.splice(index,1);
-        }
-    });
     localStorage.setItem("checkedTodos",JSON.stringify(checkedTodos));
 }
 
 
 
-//________________________FILTER INPUTUN'DAN GELEN DEĞER İLE TO DO FİLTRELEME 
+
+// FILTER INPUTUN'DAN GELEN DEĞER İLE TO DO FİLTRELEME 
 function filterTodos(e){
     const filterValue = e.target.value.toLowerCase();
     const listItems = document.querySelectorAll(".list-group-item");
@@ -155,21 +145,19 @@ function filterTodos(e){
         let textNode = listItem.children[0];
         let checkBox = listItem.children[0].children[0];
 
-        //filterValue'yu arıyor 
-
+        // filterValue'yu arıyor 
         if(text.indexOf(filterValue)===-1){ //bulamadı
             listItem.setAttribute("style","display: none !important");
             
         }
-        else{//buldu       
+        else{// filterValue'yu buldu   
+
             //Eğer checked edili haldeyse filtreleme işleminden sonra da checked edili halde gelmesi için.   
             if(checkBox.checked == true){
                 textNode.setAttribute("style", "text-decoration: line-through; opacity:60%; ");
             }
             
-            
             listItem.setAttribute("style","display: block;");
-            
         }
     })
 }
@@ -177,8 +165,7 @@ function filterTodos(e){
 
 
 
-
-//_________________________________YAPILAN İŞLEMLER DOĞRULTUSUNDA UYARI MESAJI OLUŞTURMA.
+// YAPILAN İŞLEMLER DOĞRULTUSUNDA UYARI/BİLGİLENDİRME MESAJI OLUŞTURMA.
 function showAlert(type,message){
     //Yeni elementi oluşturuyoruz.
     const alert = document.createElement("div");
@@ -189,17 +176,15 @@ function showAlert(type,message){
     //setTimeout  : belirli bir süre sonra çalışmasını istediğimiz komutlar için kullanılır.
     setTimeout(function(){
         alert.remove();
-    },4000);
-    
+    },4000); 
 }
 
 
 
 
-//_______________________________________INPUT ELEMENTİNDEN ALINAN YENİ TODO DEĞERİNİ GÖRSEL ARAYÜZE DİNAMİK OLARAK EKLENMESİ İŞLEMİ.
-function addTodoToUI(newTodo,newCheckedTodo){
+// INPUT ELEMENTİNDEN ALINAN YENİ TODO VE TODO CHECKED DEĞERİNİN GÖRSEL ARAYÜZE DİNAMİK OLARAK EKLENMESİ İŞLEMİ.
+function addTodoToUI(newTodo,newTodoCheckedValue){
     
-
     //List item oluşturma
     const listItem = document.createElement("li");
     listItem.className= "list-group-item d-flex justify-content-between";
@@ -208,20 +193,15 @@ function addTodoToUI(newTodo,newCheckedTodo){
     const leftSide = document.createElement("span");
 
     //Yapılan todoları check etme için checkBox oluşturma
-    let checkedTodos = getCheckedTodosFromStorage();
     const checkLink = document.createElement("input");
     checkLink.className = "checkItem";
     checkLink.type = "checkbox";
     checkLink.checked = false;
-
-    checkedTodos.forEach(function(index){
-        if (index == newCheckedTodo){
+    
+    if (newTodoCheckedValue === "Checked"){
             checkLink.checked = true;
             leftSide.setAttribute("style", "text-decoration: line-through; opacity:60%; ");
         }    
-        else if(index != newCheckedTodo){
-        }
-    });
 
     //todoları silmek için link oluşturma 
     const deleteLink = document.createElement("a");
@@ -249,7 +229,7 @@ function addTodoToUI(newTodo,newCheckedTodo){
 
 
 
-//______________________________STORAGE'DAN TODO ÇEKME İŞLEMİ.
+// STORAGE'DAN TODO ÇEKME İŞLEMİ.
 function getTodosFromStorage(){
     let todos;
 
@@ -264,7 +244,7 @@ function getTodosFromStorage(){
 }
 
 
-//________________________________STORAGE'DAN CheckedTodos ÇEKME İŞLEMİ
+// STORAGE'DAN CheckedTodos ÇEKME İŞLEMİ
 function getCheckedTodosFromStorage(){
     let checkedTodos ;
 
@@ -281,7 +261,7 @@ function getCheckedTodosFromStorage(){
 
 
 
-//__________________________________INPUT ELEMENTİNDEN ALINAN YENİ TODO DEĞERİNİN LOCAL STORAGE'A EKLENMESİ İŞLEMİ.
+// INPUT ELEMENTİNDEN ALINAN YENİ TODO DEĞERİNİN LOCAL STORAGE'A EKLENMESİ İŞLEMİ.
 function addTodoToStorage(newTodo){
     let todos = getTodosFromStorage();
    
@@ -290,12 +270,20 @@ function addTodoToStorage(newTodo){
 }
 
 
-//____________________________________CHECKED EDİLEN TODO'YA AİT İNDEX BİLGİSİNİN STORAGE'A EKLENMESİ.
-function addCheckedTodoToStorage(newIndex){
+// TODO'YA AİT CHECKED DEĞERİNİN LOCAL STORAGE'A EKLENMESİ.
+function addTodosCheckedValueToStorage(Value){
     let checkedTodos = getCheckedTodosFromStorage();
    
-    checkedTodos.push(newIndex);
+    checkedTodos.push(Value);
         localStorage.setItem("checkedTodos",JSON.stringify(checkedTodos));
+}
 
-   
+
+// CHECKED EDİLEN TODO'NUN DEFAULT OLAN unChecked DEĞERİNİN checked OLARAK GÜNCELLENMESİ.
+function updateCheckedTodosValue(newValue,index){
+    let checkedTodos = getCheckedTodosFromStorage();
+
+    checkedTodos[index] = newValue;
+
+    localStorage.setItem("checkedTodos",JSON.stringify(checkedTodos));
 }
