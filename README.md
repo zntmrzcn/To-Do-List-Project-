@@ -1,2 +1,3 @@
-# Web Geliştirme Örnek #3
-Simple To Do List App
+# Simple To Do List App 
+
+>_Web Geliştirme Örnek #3_
